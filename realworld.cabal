@@ -1,0 +1,112 @@
+cabal-version: 3.0
+
+name:
+  realworld
+
+version:
+  90.0.0
+
+
+common common
+
+  default-language:
+    Haskell2010
+  
+  default-extensions:
+    BangPatterns
+    BlockArguments
+    DataKinds
+    DerivingStrategies
+    FlexibleContexts
+    FlexibleInstances
+    FunctionalDependencies
+    MagicHash
+    NoStarIsType
+    PatternSynonyms
+    PolyKinds
+    RankNTypes
+    ScopedTypeVariables
+    StandaloneKindSignatures
+    TypeApplications
+    TypeFamilyDependencies
+    TypeOperators
+    UnboxedTuples
+
+  ghc-options:
+    -Wall -Wcompat -Wno-unticked-promoted-constructors
+
+common libs
+
+  build-depends:
+    base
+      >= 4.15 && < 4.16,
+    ghc-bignum
+      >= 1.0  && < 1.1 ,
+    template-haskell
+      >= 2.17 && < 2.18,
+
+library
+
+  import:
+    common, libs
+
+  hs-source-dirs:
+    src
+
+  exposed-modules:
+    Control.Monad.RealWorld
+    Control.Monad.State.RealWorld
+    Control.Monad.State.RealWorld.GHC
+    Control.Monad.State.RealWorld.GHC.BigNum
+
+    Control.Monad.State.RealWorld.Instances.TH
+
+  other-modules:
+    Control.Monad.State.RealWorld.Instances
+
+library realworld-inspection
+--test-suite realworld-inspection
+
+  import:
+    common, libs
+
+--  type:
+--    detailed-0.9
+
+  build-depends:
+    realworld,
+--  inspection-testing
+--    >= 0.4 && < 0.5,
+
+--  test-module:
+--    Inspection
+
+  hs-source-dirs:
+    test
+
+  exposed-modules:
+    Inspection
+
+
+executable gen-primops
+
+  import:
+    common
+
+  build-depends:
+    base
+      >= 4.14    && < 5.0,
+    megaparsec
+      >= 9.0.1   && < 9.1,
+    parser-combinators
+      >= 1.3.0   && < 2.0,
+    text
+      >= 1.2.4.1 && < 1.3,
+
+  hs-source-dirs: gen
+
+  main-is: Main.hs
+
+  other-modules:
+    GenPrimOps
+    ParsePrimOps
