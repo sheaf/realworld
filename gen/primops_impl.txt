@@ -1032,7 +1032,8 @@ writeWord8ArrayAsWord# arg1 arg2 arg3 =
     case GHC.Exts.writeWord8ArrayAsWord# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
--- | @ copyByteArray# src src_ofs dst dst_ofs n@
+-- | @ copyByteArray# src src_ofs dst dst_ofs n@ copies the range
+-- starting at offset {\tt src_ofs
 copyByteArray#
   :: ByteArray#
   -> Int#
@@ -1109,7 +1110,7 @@ copyAddrToByteArray# arg1 arg2 arg3 arg4 =
     case GHC.Exts.copyAddrToByteArray# arg1 arg2 arg3 arg4 s# of
       t# -> (# t#, (##) #)
 
--- | @ setByteArray# ba off len c@
+-- | @ setByteArray# ba off len c@ sets the byte range {\tt [off, off+len]
 setByteArray#
   :: MutableByteArray# s
   -> Int#

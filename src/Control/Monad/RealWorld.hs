@@ -5,7 +5,7 @@ import Prelude hiding ( Functor(..), Applicative(..), Monad(..) )
 import Data.Kind
   ( Constraint, Type )
 import GHC.Exts
-  ( RuntimeRep(..), TYPE )
+  ( RuntimeRep(..), TYPE, RealWorld )
 
 --------------------------------------------------------------------------------
 
@@ -45,4 +45,4 @@ type RunRWS# :: RuntimeRep -> ( Type -> forall ( rep :: RuntimeRep ). TYPE rep -
 class RunRWS# rep1 f where
   runRWS#
     :: forall ( a :: TYPE rep1 )
-    .  ( forall s. f s a ) -> a
+    .  f RealWorld a -> a

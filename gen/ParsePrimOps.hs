@@ -136,21 +136,24 @@ allowedSymbols = [ '*', '+', '-', '<', '>', '=', '/', '_' ]
 docs :: MonadParsec e Text m => m Text
 docs = do
   _ <- Mp.chunk "{"
-  Text.concat <$> manyTill
-    ( italicComment <|> monotypeComment <|> basicComment )
-    ( Mp.chunk "}" )
+  comms <-
+    Text.concat <$> many
+      ( italicComment <|> monotypeComment <|> basicComment )
+  _ <- Mp.chunk "}"
+  pure comms
 
 italicComment :: MonadParsec e Text m => m Text
 italicComment = do
   _ <- Mp.chunk "{\\it"
   content <- Mp.takeWhile1P ( Just "italic comment text" ) ( \ c -> c /= '}' )
+  _ <- Mp.chunk "}"
   pure ( "/" <> content <> "/" )
-  -- TOOD: this seems messed up
 
 monotypeComment :: MonadParsec e Text m => m Text
 monotypeComment = do
   _ <- Mp.chunk "{\\tt"
   content <- Mp.takeWhile1P ( Just "monotype comment text" ) ( \ c -> c /= '}' )
+  _ <- Mp.chunk "}"
   pure ( "@" <> content <> "@" )
 
 basicComment ::MonadParsec e Text m => m Text

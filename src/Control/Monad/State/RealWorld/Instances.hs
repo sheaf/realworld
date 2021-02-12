@@ -9,7 +9,7 @@ module Control.Monad.State.RealWorld.Instances
 -- base
 import Prelude hiding ( Functor(..), Applicative(..), Monad(..) )
 import GHC.Exts
-  ( RuntimeRep(..), runRW# )
+  ( RuntimeRep(..) )
 
 -- realworld
 import Control.Monad.State.RealWorld.Instances.TH
@@ -17,3 +17,10 @@ import Control.Monad.State.RealWorld.Instances.TH
 --------------------------------------------------------------------------------
 
 --declareRuntimeRepInstances
+
+oneRepInstances [t|LiftedRep|]
+oneRepInstances [t|IntRep|]
+twoRepInstances [t|UnliftedRep|] [t|LiftedRep|]
+twoRepInstances [t|TupleRep '[]|] [t|LiftedRep|]
+twoRepInstances [t|TupleRep '[]|] [t|IntRep|]
+twoRepInstances [t|WordRep|] [t|LiftedRep|]

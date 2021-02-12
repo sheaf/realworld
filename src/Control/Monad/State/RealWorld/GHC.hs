@@ -25,6 +25,16 @@ module Control.Monad.State.RealWorld.GHC
   , freezeArray#
   , thawArray#
   , casArray#
+  , catch#
+  , raiseIO#
+  , maskAsyncExceptions#
+  , maskUninterruptible#
+  , unmaskAsyncExceptions#
+  , getMaskingState#
+  , atomically#
+  , retry#
+  , catchRetry#
+  , catchSTM#
   , newSmallArray#
   , readSmallArray#
   , writeSmallArray#
@@ -189,11 +199,39 @@ module Control.Monad.State.RealWorld.GHC
   , delay#
   , waitRead#
   , waitWrite#
+  , fork#
+  , forkOn#
+  , killThread#
+  , yield#
+  , myThreadId#
+  , labelThread#
+  , isCurrentThreadBound#
+  , threadStatus#
+  , mkWeak#
+  , mkWeakNoFinalizer#
+  , addCFinalizerToWeak#
+  , deRefWeak#
+  , touch#
+  , makeStablePtr#
+  , deRefStablePtr#
+  , makeStableName#
+  , compactNew#
+  , compactResize#
+  , compactContains#
+  , compactContainsAny#
+  , compactGetFirstBlock#
+  , compactGetNextBlock#
+  , compactAllocateBlock#
+  , compactFixupPointers#
+  , compactAdd#
+  , compactAddWithSharing#
+  , compactSize#
   , noDuplicate#
   , spark#
   , seq#
   , getSpark#
   , numSparks#
+  , anyToAddr#
   , newBCO#
   , getCCSOf#
   , getCurrentCCS#
@@ -201,6 +239,7 @@ module Control.Monad.State.RealWorld.GHC
   , traceEvent#
   , traceBinaryEvent#
   , traceMarker#
+  , setThreadAllocationCounter#
   , prefetchByteArray3#
   , prefetchMutableByteArray3#
   , prefetchAddr3#
@@ -236,6 +275,16 @@ import GHC.Exts hiding
   , freezeArray#
   , thawArray#
   , casArray#
+  , catch#
+  , raiseIO#
+  , maskAsyncExceptions#
+  , maskUninterruptible#
+  , unmaskAsyncExceptions#
+  , getMaskingState#
+  , atomically#
+  , retry#
+  , catchRetry#
+  , catchSTM#
   , newSmallArray#
   , readSmallArray#
   , writeSmallArray#
@@ -400,11 +449,39 @@ import GHC.Exts hiding
   , delay#
   , waitRead#
   , waitWrite#
+  , fork#
+  , forkOn#
+  , killThread#
+  , yield#
+  , myThreadId#
+  , labelThread#
+  , isCurrentThreadBound#
+  , threadStatus#
+  , mkWeak#
+  , mkWeakNoFinalizer#
+  , addCFinalizerToWeak#
+  , deRefWeak#
+  , touch#
+  , makeStablePtr#
+  , deRefStablePtr#
+  , makeStableName#
+  , compactNew#
+  , compactResize#
+  , compactContains#
+  , compactContainsAny#
+  , compactGetFirstBlock#
+  , compactGetNextBlock#
+  , compactAllocateBlock#
+  , compactFixupPointers#
+  , compactAdd#
+  , compactAddWithSharing#
+  , compactSize#
   , noDuplicate#
   , spark#
   , seq#
   , getSpark#
   , numSparks#
+  , anyToAddr#
   , newBCO#
   , getCCSOf#
   , getCurrentCCS#
@@ -412,6 +489,7 @@ import GHC.Exts hiding
   , traceEvent#
   , traceBinaryEvent#
   , traceMarker#
+  , setThreadAllocationCounter#
   , prefetchByteArray3#
   , prefetchMutableByteArray3#
   , prefetchAddr3#
@@ -1968,6 +2046,78 @@ casMutVar# arg1 arg2 arg3 =
     case GHC.Exts.casMutVar# arg1 arg2 arg3 s# of
       (# t#, res1, res2 #) -> (# t#, (# res1, res2 #) #)
 
+catch#
+  :: forall a b
+  .  StateS# RealWorld a
+  -> ( b -> StateS# RealWorld a )
+  -> StateS# RealWorld a
+catch# ( StateS# a ) b_to_sa =
+  StateS# ( GHC.Exts.catch# a b_to_sa' )
+  where
+    b_to_sa' :: b -> State# RealWorld -> (# State# RealWorld, a #)
+    b_to_sa' = \ b -> case b_to_sa b of
+      StateS# f -> f
+
+-- | Throw a precise exception.
+raiseIO#
+  :: a
+  -> StateS# RealWorld b
+raiseIO# arg1 =
+  StateS# ( GHC.Exts.raiseIO# arg1 )
+
+maskAsyncExceptions#
+  :: StateS# RealWorld a
+  -> StateS# RealWorld a
+maskAsyncExceptions# ( StateS# a ) =
+  StateS# ( GHC.Exts.maskAsyncExceptions# a )
+
+maskUninterruptible#
+  :: StateS# RealWorld a
+  -> StateS# RealWorld a
+maskUninterruptible# ( StateS# a ) =
+  StateS# ( GHC.Exts.maskUninterruptible# a )
+
+unmaskAsyncExceptions#
+  :: StateS# RealWorld a
+  -> StateS# RealWorld a
+unmaskAsyncExceptions#( StateS# a ) =
+  StateS# ( GHC.Exts.unmaskAsyncExceptions# a )
+
+getMaskingState#
+  :: StateS# RealWorld Int#
+getMaskingState# =
+  StateS# GHC.Exts.getMaskingState#
+
+atomically#
+  :: StateS# RealWorld a
+  -> StateS# RealWorld a
+atomically# ( StateS# a ) =
+  StateS# ( GHC.Exts.atomically# a )
+
+retry#
+  :: StateS# RealWorld a
+retry# =
+  StateS# GHC.Exts.retry#
+
+catchRetry#
+  :: StateS# RealWorld a
+  -> StateS# RealWorld a
+  -> StateS# RealWorld a
+catchRetry# ( StateS# a1 ) ( StateS# a2 ) =
+  StateS# ( GHC.Exts.catchRetry# a1 a2 )
+
+catchSTM#
+  :: forall a b
+  .  StateS# RealWorld a
+  -> ( b -> StateS# RealWorld a )
+  -> StateS# RealWorld a
+catchSTM# ( StateS# a ) b_to_sa =
+  StateS# ( GHC.Exts.catchSTM# a b_to_sa' )
+  where
+    b_to_sa' :: b -> State# RealWorld -> (# State# RealWorld, a #)
+    b_to_sa' = \ b -> case b_to_sa b of
+      StateS# f -> f
+
 -- | Create a new 'TVar#' holding a specified initial value.
 newTVar#
   :: a
@@ -2112,6 +2262,232 @@ waitWrite# arg1 =
     case GHC.Exts.waitWrite# arg1 s# of
       t# -> (# t#, (##) #)
 
+fork#
+  :: a
+  -> StateS# RealWorld ThreadId#
+fork# arg1 =
+  StateS# ( GHC.Exts.fork# arg1 )
+
+forkOn#
+  :: Int#
+  -> a
+  -> StateS# RealWorld ThreadId#
+forkOn# arg1 arg2 =
+  StateS# ( GHC.Exts.forkOn# arg1 arg2 )
+
+killThread#
+  :: ThreadId#
+  -> a
+  -> StateS# RealWorld (##)
+killThread# arg1 arg2 =
+  StateS# \ s# -> case GHC.Exts.killThread# arg1 arg2 s# of
+    t# -> (# t#, (##) #)
+
+yield#
+  :: StateS# RealWorld (##)
+yield# =
+  StateS# \ s# -> case GHC.Exts.yield# s# of
+    t# -> (# t#, (##) #)
+
+myThreadId#
+  :: StateS# RealWorld ThreadId#
+myThreadId# =
+  StateS# GHC.Exts.myThreadId#
+
+labelThread#
+  :: ThreadId#
+  -> Addr#
+  -> StateS# RealWorld (##)
+labelThread# arg1 arg2 =
+  StateS# \ s# -> case GHC.Exts.labelThread# arg1 arg2 s# of
+    t# -> (# t#, (##) #)
+
+isCurrentThreadBound#
+  :: StateS# RealWorld Int#
+isCurrentThreadBound# =
+  StateS# GHC.Exts.isCurrentThreadBound#
+
+threadStatus#
+  :: ThreadId#
+  -> StateS# RealWorld (# Int#, Int#, Int# #)
+threadStatus# arg1 =
+  StateS# \ s# -> case GHC.Exts.threadStatus# arg1 s# of
+    (# t#, res1, res2, res3 #) -> (# t#, (# res1, res2, res3 #) #)
+
+mkWeak#
+  :: o
+  -> b
+  -> StateS# RealWorld c
+  -> StateS# RealWorld ( Weak# b )
+mkWeak# arg1 arg2 ( StateS# arg3 ) =
+  StateS# ( GHC.Exts.mkWeak# arg1 arg2 arg3 )
+
+mkWeakNoFinalizer#
+  :: o
+  -> b
+  -> StateS# RealWorld ( Weak# b )
+mkWeakNoFinalizer# arg1 arg2 =
+  StateS# ( GHC.Exts.mkWeakNoFinalizer# arg1 arg2 )
+
+addCFinalizerToWeak#
+  :: Addr#
+  -> Addr#
+  -> Int#
+  -> Addr#
+  -> Weak# b
+  -> StateS# RealWorld Int#
+addCFinalizerToWeak# arg1 arg2 arg3 arg4 arg5 =
+  StateS# ( GHC.Exts.addCFinalizerToWeak# arg1 arg2 arg3 arg4 arg5 )
+
+deRefWeak#
+  :: Weak# a
+  -> StateS# RealWorld (# Int#, a #)
+deRefWeak# arg1 =
+  StateS# \ s# -> case GHC.Exts.deRefWeak# arg1 s# of
+    (# t#, res1, res2 #) -> (# t#, (# res1, res2 #) #)
+
+touch#
+  :: o
+  -> StateS# RealWorld (##)
+touch# arg1 =
+  StateS# \ s# -> case GHC.Exts.touch# arg1 s# of
+    t# -> (# t#, (##) #)
+
+makeStablePtr#
+  :: a
+  -> StateS# RealWorld ( StablePtr# a )
+makeStablePtr# arg1 =
+  StateS# ( GHC.Exts.makeStablePtr# arg1 )
+
+deRefStablePtr#
+  :: StablePtr# a
+  -> StateS# RealWorld a
+deRefStablePtr# arg1 =
+  StateS# ( GHC.Exts.deRefStablePtr# arg1 )
+
+makeStableName#
+  :: a
+  -> StateS# RealWorld ( StableName# a )
+makeStableName# arg1 =
+  StateS# ( GHC.Exts.makeStableName# arg1 )
+
+-- | Create a new CNF with a single compact block. The argument is
+-- the capacity of the compact block (in bytes, not words).
+-- The capacity is rounded up to a multiple of the allocator block size
+-- and is capped to one mega block.
+compactNew#
+  :: Word# -- ^ capacity (in bytes)
+  -> StateS# RealWorld Compact#
+compactNew# arg1 =
+  StateS# ( GHC.Exts.compactNew# arg1 )
+
+-- | Set the new allocation size of the CNF. This value (in bytes)
+-- determines the capacity of each compact block in the CNF. It
+-- does not retroactively affect existing compact blocks in the CNF.
+compactResize#
+  :: Compact#
+  -> Word# -- ^ allocation size (in bytes)
+  -> StateS# RealWorld (##)
+compactResize# arg1 arg2 =
+  StateS# \ s# -> case GHC.Exts.compactResize# arg1 arg2 s# of
+    t# -> (# t#, (##) #)
+
+-- | Returns @1#@ if the object is contained in the CNF, @0#@ otherwise.
+compactContains#
+  :: Compact#
+  -> a
+  -> StateS# RealWorld Int#
+compactContains# arg1 arg2 =
+  StateS# ( GHC.Exts.compactContains# arg1 arg2 )
+
+-- | Returns @1#@ if the object is in any CNF at all, @0#@ otherwise.
+compactContainsAny#
+  :: a
+  -> StateS# RealWorld Int#
+compactContainsAny# arg1 =
+  StateS# ( GHC.Exts.compactContainsAny# arg1 )
+
+-- | Returns the address and the utilized size (in bytes) of the
+-- first compact block of a CNF.
+compactGetFirstBlock#
+  :: Compact#
+  -> StateS# RealWorld (# Addr#, Word# #)
+compactGetFirstBlock# arg1 =
+  StateS# \ s# -> case GHC.Exts.compactGetFirstBlock# arg1 s# of
+    (# t#, res1, res2 #) -> (# t#, (# res1, res2 #) #)
+
+-- | Given a CNF and the address of one its compact blocks, returns the
+-- next compact block and its utilized size, or 'nullAddr#' if the
+-- argument was the last compact block in the CNF.
+compactGetNextBlock#
+  :: Compact#
+  -> Addr#
+  -> StateS# RealWorld (# Addr#, Word# #)
+compactGetNextBlock# arg1 arg2 =
+  StateS# \ s# -> case GHC.Exts.compactGetNextBlock# arg1 arg2 s# of
+    (# t#, res1, res2 #) -> (# t#, (# res1, res2 #) #)
+
+-- | Attempt to allocate a compact block with the capacity (in
+-- bytes) given by the first argument. The 'Addr#' is a pointer
+-- to previous compact block of the CNF or 'nullAddr#' to create a
+-- new CNF with a single compact block.
+-- 
+-- The resulting block is not known to the GC until
+-- 'compactFixupPointers' is called on it, and care must be taken
+-- so that the address does not escape or memory will be leaked.
+compactAllocateBlock#
+  :: Word# -- ^ capacity (in bytes)
+  -> Addr# -- ^ previous compact block of the CNF (or 'nullAddr')
+  -> StateS# RealWorld Addr#
+compactAllocateBlock# arg1 arg2 =
+  StateS# ( GHC.Exts.compactAllocateBlock# arg1 arg2 )
+
+-- | Given the pointer to the first block of a CNF and the
+-- address of the root object in the old address space, fix up
+-- the internal pointers inside the CNF to account for
+-- a different position in memory than when it was serialized.
+-- This method must be called exactly once after importing
+-- a serialized CNF. It returns the new CNF and the new adjusted
+-- root address.
+compactFixupPointers#
+  :: Addr# -- ^ first block address
+  -> Addr# -- ^ address of the root object in the old address space
+  -> StateS# RealWorld (# Compact#, Addr# #)
+compactFixupPointers# arg1 arg2 =
+  StateS# \ s# -> case GHC.Exts.compactFixupPointers# arg1 arg2 s# of
+    (# t#, res1, res2 #) -> (# t#, (# res1, res2 #) #)
+
+-- | Recursively add a closure and its transitive closure to a
+-- 'Compact#' (a CNF), evaluating any unevaluated components
+-- at the same time. Note: 'compactAdd#' is not thread-safe, so
+-- only one thread may call 'compactAdd#' with a particular
+-- 'Compact#' at any given time. The primop does not
+-- enforce any mutual exclusion; the caller is expected to
+-- arrange this. 
+compactAdd#
+  :: Compact#
+  -> a
+  -> StateS# RealWorld a
+compactAdd# arg1 arg2 =
+  StateS# ( GHC.Exts.compactAdd# arg1 arg2 )
+
+-- | Like 'compactAdd#', but retains sharing and cycles
+-- during compaction. 
+compactAddWithSharing#
+  :: Compact#
+  -> a
+  -> StateS# RealWorld a
+compactAddWithSharing# arg1 arg2 =
+  StateS# ( GHC.Exts.compactAddWithSharing# arg1 arg2 )
+
+-- | Return the total capacity (in bytes) of all the compact blocks
+-- in the CNF.
+compactSize#
+  :: Compact#
+  -> StateS# RealWorld Word#
+compactSize# arg1 =
+  StateS# ( GHC.Exts.compactSize#arg1 )
+
 noDuplicate#
   :: StateS# s (##)
 noDuplicate# =
@@ -2143,6 +2519,12 @@ numSparks#
   :: StateS# s Int#
 numSparks# =
   StateS# GHC.Exts.numSparks#
+
+anyToAddr#
+  :: a
+  -> StateS# RealWorld Addr#
+anyToAddr# arg1 =
+  StateS# ( GHC.Exts.anyToAddr# arg1 )
 
 -- | @NewBCO# instrs lits ptrs arity bitmap@ creates a new bytecode object. The
 -- resulting object encodes a function of the given arity with the instructions
@@ -2219,6 +2601,15 @@ traceMarker#
 traceMarker# arg1 =
   StateS# \ s# ->
     case GHC.Exts.traceMarker# arg1 s# of
+      t# -> (# t#, (##) #)
+
+-- | Sets the allocation counter for the current thread to the given value.
+setThreadAllocationCounter#
+  :: INT64
+  -> StateS# RealWorld (##)
+setThreadAllocationCounter# arg1 =
+  StateS# \ s# ->
+    case GHC.Exts.setThreadAllocationCounter# arg1 s# of
       t# -> (# t#, (##) #)
 
 prefetchByteArray3#
