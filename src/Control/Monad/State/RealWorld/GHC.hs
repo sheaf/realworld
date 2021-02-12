@@ -2314,21 +2314,6 @@ threadStatus# arg1 =
   StateS# \ s# -> case GHC.Exts.threadStatus# arg1 s# of
     (# t#, res1, res2, res3 #) -> (# t#, (# res1, res2, res3 #) #)
 
-mkWeak#
-  :: o
-  -> b
-  -> StateS# RealWorld c
-  -> StateS# RealWorld ( Weak# b )
-mkWeak# arg1 arg2 ( StateS# arg3 ) =
-  StateS# ( GHC.Exts.mkWeak# arg1 arg2 arg3 )
-
-mkWeakNoFinalizer#
-  :: o
-  -> b
-  -> StateS# RealWorld ( Weak# b )
-mkWeakNoFinalizer# arg1 arg2 =
-  StateS# ( GHC.Exts.mkWeakNoFinalizer# arg1 arg2 )
-
 addCFinalizerToWeak#
   :: Addr#
   -> Addr#
@@ -2346,12 +2331,37 @@ deRefWeak# arg1 =
   StateS# \ s# -> case GHC.Exts.deRefWeak# arg1 s# of
     (# t#, res1, res2 #) -> (# t#, (# res1, res2 #) #)
 
-touch#
-  :: o
-  -> StateS# RealWorld (##)
-touch# arg1 =
-  StateS# \ s# -> case GHC.Exts.touch# arg1 s# of
-    t# -> (# t#, (##) #)
+-- | Levity-polymorphic weak pointer operations
+class WeakOps# ( rep :: RuntimeRep ) where
+  mkWeak#
+    :: ( o :: TYPE rep )
+    -> b
+    -> StateS# RealWorld c
+    -> StateS# RealWorld ( Weak# b )
+  mkWeakNoFinalizer#
+    :: ( o :: TYPE rep )
+    -> b
+    -> StateS# RealWorld ( Weak# b )
+  touch#
+    :: ( o :: TYPE rep )
+    -> StateS# RealWorld (##)
+
+instance WeakOps# LiftedRep where
+  mkWeak# arg1 arg2 ( StateS# arg3 ) =
+    StateS# ( GHC.Exts.mkWeak# arg1 arg2 arg3 )
+  mkWeakNoFinalizer# arg1 arg2 =
+    StateS# ( GHC.Exts.mkWeakNoFinalizer# arg1 arg2 )
+  touch# arg1 =
+    StateS# \ s# -> case GHC.Exts.touch# arg1 s# of
+      t# -> (# t#, (##) #)
+instance WeakOps# UnliftedRep where
+  mkWeak# arg1 arg2 ( StateS# arg3 ) =
+    StateS# ( GHC.Exts.mkWeak# arg1 arg2 arg3 )
+  mkWeakNoFinalizer# arg1 arg2 =
+    StateS# ( GHC.Exts.mkWeakNoFinalizer# arg1 arg2 )
+  touch# arg1 =
+    StateS# \ s# -> case GHC.Exts.touch# arg1 s# of
+      t# -> (# t#, (##) #)
 
 makeStablePtr#
   :: a
