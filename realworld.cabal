@@ -102,15 +102,15 @@ library
     src
 
   exposed-modules:
-    Control.Monad.RealWorld
-    Control.Monad.State.RealWorld
-    Control.Monad.State.RealWorld.GHC
-    Control.Monad.State.RealWorld.GHC.BigNum
+    RealWorld.Monad
+    RealWorld.Monad.State
+    RealWorld.GHC
+    RealWorld.GHC.BigNum
 
-    Control.Monad.State.RealWorld.Instances.TH
+    RealWorld.Instances.TH
 
   other-modules:
-    Control.Monad.State.RealWorld.Instances
+    RealWorld.Instances
 
 library realworld-inspection
 --test-suite realworld-inspection

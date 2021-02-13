@@ -29,11 +29,11 @@ import qualified GHC.Num.WordArray as GHC
 --  ( Result(..) )
 
 -- realworld
-import qualified Control.Monad.RealWorld                  as RW
-import qualified Control.Monad.State.RealWorld            as RW
-import qualified Control.Monad.State.RealWorld.GHC        as RW
-import qualified Control.Monad.State.RealWorld.GHC.BigNum as RW
-import Control.Monad.State.RealWorld.GHC.BigNum
+import qualified RealWorld.Monad       as RW
+import qualified RealWorld.Monad.State as RW
+import qualified RealWorld.GHC         as RW
+import qualified RealWorld.GHC.BigNum  as RW
+import RealWorld.GHC.BigNum 
   ( Bool#, WordArray#, MutableWordArray# )
 
 --------------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 {-|
-Module: Control.Monad.State.RealWorld.GHC.BigNum
+Module: RealWorld.GHC.BigNum
 
 A drop-in replacement for the @ghc-bignum@ library,
 which provides monadic versions of the state-passing operations,
 and re-exporting everything else.
 -}
 
-module Control.Monad.State.RealWorld.GHC.BigNum
+module RealWorld.GHC.BigNum
   ( -- * "GHC.Num.BigNat" functions
     bigNatToAddrLE#
   , bigNatToAddrBE#
@@ -158,9 +158,9 @@ import GHC.Num.WordArray hiding
   )
 
 -- realworld
-import Control.Monad.State.RealWorld
+import RealWorld.Monad.State
   ( StateS#(..) )
-import Control.Monad.State.RealWorld.Instances
+import RealWorld.Instances
   ( )
 
 --------------------------------------------------------------------------------

@@ -32,14 +32,14 @@ intoBytes_ghc (I# nbBytes) i = GHC.runRW# \ s1 ->
       (# s3, word2Int# -> bytesWritten #) ->
         case GHC.setByteArray# mba bytesWritten ( nbBytes -# bytesWritten ) 0# s3 of
           s4 -> case GHC.unsafeFreezeByteArray# mba s4 of
-            (# _, ba #) ->  ba
+            (# _, ba #) -> ba
 ```
 
 ```haskell
-import qualified Control.Monad.RealWorld                  as RW -- typeclasses providing monadic operations
-import qualified Control.Monad.State.RealWorld            as RW -- StateS# monad
-import qualified Control.Monad.State.RealWorld.GHC        as RW -- drop-in replacement for GHC.Exts
-import qualified Control.Monad.State.RealWorld.GHC.BigNum as RW -- drop-in replacement for ghc-bignum
+import qualified RealWorld.Monad       as RW -- typeclasses providing monadic operations
+import qualified RealWorld.Monad.State as RW -- StateS# monad
+import qualified RealWorld.GHC         as RW -- drop-in replacement for GHC.Exts
+import qualified RealWorld.GHC.BigNum  as RW -- drop-in replacement for ghc-bignum
 
 intoBytes_rw :: Int -> Natural -> ByteArray#
 intoBytes_rw (I# nbBytes) i = RW.runRWS# RW.do

@@ -1,12 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 {-|
-Module: Control.Monad.State.RealWorld.Instances.TH
+Module: RealWorld.Instances.TH
 
 Template Haskell functionality for defining levity polymorphic monadic operations.
 -}
 
-module Control.Monad.State.RealWorld.Instances.TH where
+module RealWorld.Instances.TH where
 
 -- base
 import qualified Prelude
@@ -20,9 +20,9 @@ import GHC.Exts
 import qualified Language.Haskell.TH.Syntax as TH
 
 -- realworld
-import Control.Monad.RealWorld
+import RealWorld.Monad
   ( Pure#(..), Fmap#(..), Bind#(..), RunRWS#(..) )
-import Control.Monad.State.RealWorld
+import RealWorld.Monad.State
   ( StateS#(..) )
 
 --------------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 {-|
-Module: Control.Monad.RealWorld
+Module: RealWorld.Monad
 
 Typeclasses for levity-polymorphic monadic operations, to circumvent levity polymorphism restrictions.
 
 Import this module with @QualifiedDo@ or @RebindableSyntax@ to use these for monadic @do@ blocks.
 -}
 
-module Control.Monad.RealWorld where
+module RealWorld.Monad where
 
 -- base
 import Prelude hiding ( Functor(..), Applicative(..), Monad(..) )

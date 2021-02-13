@@ -2,12 +2,12 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 {-|
-Module: Control.Monad.State.RealWorld
+Module: RealWorld.Monad.State
 
 Levity polymorphic 'RealWorld' token state-passing monad.
 -}
 
-module Control.Monad.State.RealWorld
+module RealWorld.Monad.State
   ( StateS#(..) )
   where
 
@@ -20,7 +20,7 @@ import GHC.TypeLits
   ( TypeError, ErrorMessage(..) )
 
 -- realworld
-import Control.Monad.RealWorld
+import RealWorld.Monad
 
 --------------------------------------------------------------------------------
 

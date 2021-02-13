@@ -2,7 +2,7 @@
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Control.Monad.State.RealWorld.Instances
+module RealWorld.Instances
   ( )
   where
 
@@ -10,7 +10,7 @@ module Control.Monad.State.RealWorld.Instances
 import Prelude hiding ( Functor(..), Applicative(..), Monad(..) )
 
 -- realworld
-import Control.Monad.State.RealWorld.Instances.TH
+import RealWorld.Instances.TH
   ( declareRuntimeRepInstances )
 
 --------------------------------------------------------------------------------

@@ -13,14 +13,14 @@
 #endif
 
 {-|
-Module: Control.Monad.State.RealWorld.GHC
+Module: RealWorld.GHC
 
 A drop-in replacement for "GHC.Exts",
 providing monadic versions of the state-passing operations,
 and re-exporting everything else.
 -}
 
-module Control.Monad.State.RealWorld.GHC
+module RealWorld.GHC
   (
   -- * Functions from "GHC.Exts" adapted to use 'StateS#'
     newArray#
@@ -517,9 +517,9 @@ import GHC.Exts hiding
   )
 
 -- realworld
-import Control.Monad.State.RealWorld
+import RealWorld.Monad.State
   ( StateS#(..) )
-import Control.Monad.State.RealWorld.Instances
+import RealWorld.Instances
   ( )
 
 --------------------------------------------------------------------------------
