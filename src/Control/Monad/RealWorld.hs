@@ -1,3 +1,11 @@
+{-|
+Module: Control.Monad.RealWorld
+
+Typeclasses for levity-polymorphic monadic operations, to circumvent levity polymorphism restrictions.
+
+Import this module with @QualifiedDo@ or @RebindableSyntax@ to use these for monadic @do@ blocks.
+-}
+
 module Control.Monad.RealWorld where
 
 -- base
@@ -9,12 +17,14 @@ import GHC.Exts
 
 --------------------------------------------------------------------------------
 
+-- | Levity polymorphic 'Control.Applicative.pure'.
 type Pure# :: RuntimeRep -> ( forall ( rep :: RuntimeRep ). TYPE rep -> Type ) -> Constraint
 class Pure# rep1 f where
   pure
     :: forall ( a :: TYPE rep1 )
     .  a -> f a
 
+-- | Levity polymorphic 'Data.Functor.fmap'.
 type Fmap# :: RuntimeRep -> RuntimeRep -> ( forall ( rep :: RuntimeRep ). TYPE rep -> Type ) -> Constraint
 class Fmap# rep1 rep2 f where
   fmap
@@ -32,6 +42,7 @@ infixl 4 <$>
 (<$>) = fmap
 
 infixl 1 >>=
+-- | Levity polymorphic '(Control.Monad.>>=)'.
 type Bind# :: RuntimeRep -> RuntimeRep -> ( forall ( rep :: RuntimeRep ). TYPE rep -> Type ) -> Constraint
 class Bind# rep1 rep2 f where
   (>>=)
@@ -41,6 +52,7 @@ class Bind# rep1 rep2 f where
     :: forall ( a :: TYPE rep1 ) ( b :: TYPE rep2 )
     .  f a -> f b -> f b
 
+-- | Version of 'GHC.Exts.runRW#' for state-passing monads.
 type RunRWS# :: RuntimeRep -> ( Type -> forall ( rep :: RuntimeRep ). TYPE rep -> Type ) -> Constraint
 class RunRWS# rep1 f where
   runRWS#

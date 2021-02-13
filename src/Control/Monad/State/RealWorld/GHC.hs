@@ -12,6 +12,14 @@
 #define WORD64 Word#
 #endif
 
+{-|
+Module: Control.Monad.State.RealWorld.GHC
+
+A drop-in replacement for "GHC.Exts",
+providing monadic versions of the state-passing operations,
+and re-exporting everything else.
+-}
+
 module Control.Monad.State.RealWorld.GHC
   (
   -- * Functions from "GHC.Exts" adapted to use 'StateS#'

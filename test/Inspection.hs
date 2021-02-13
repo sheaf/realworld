@@ -36,9 +36,6 @@ import qualified Control.Monad.State.RealWorld.GHC.BigNum as RW
 import Control.Monad.State.RealWorld.GHC.BigNum
   ( Bool#, WordArray#, MutableWordArray# )
 
-import Control.Monad.State.RealWorld.Instances.TH
-  ( oneRepInstances, twoRepInstances )
-
 --------------------------------------------------------------------------------
 
 data ByteArray = ByteArray ByteArray#

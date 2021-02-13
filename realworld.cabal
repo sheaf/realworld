@@ -1,11 +1,59 @@
-cabal-version: 3.0
+cabal-version:  3.0
+name:           realworld
+version:        90.0.1
+author:         Sam Derbyshire
+maintainer:     Sam Derbyshire
+license:        BSD-3-Clause
+homepage:       https://github.com/sheaf/realworld
+build-type:     Simple
+description:
 
-name:
-  realworld
+  A RealWorld-token state-passing levity polymorphic monad
+  with support for GHC primops.
 
-version:
-  90.0.0
+  Consider the GHC @catch#@ primop, which has type:
 
+  @
+    catch#
+      :: ( State# RealWorld -> (# State# RealWorld, a #) )
+      -> ( b -> State# RealWorld -> (# State# RealWorld, a #) )
+      -> State# RealWorld
+      -> (# State# RealWorld, a #)
+  @
+
+  This library re-exports it's own version using the @StateS#@ state monad.
+  The type signature of @catch#@ then becomes:
+
+  @
+    catch#
+      :: StateS# RealWorld a
+      -> ( b -> StateS# RealWorld a )
+      -> StateS# RealWorld a
+  @
+
+  which should be familiar to users of @Control.Monad.Except@:
+
+  @
+    catchError
+      :: m a
+      -> ( b -> m a )
+      -> m a
+  @
+
+  This library allows for writing programs in a more idiomatic (monadic) style,
+  using either @QualifiedDo@ or @RebindableSyntax@.
+
+  This comes at no extra runtime cost: GHC is able to optimise this
+  abstraction away (in our limited testing, at least).
+
+  Provides drop-in replacement modules for @GHC.Exts@ as well as the @ghc-bignum@ library.
+
+  __Disclaimer__: to work around the GHC levity polymorphism restrictions,
+  we use ad-hoc typeclasses to support the various monadic operations at
+  different runtime representations.
+  If you run into a runtime rep which is missing an instance,
+  you will have to define your own orphans;
+  a helper Template Haskell splice is provided for that purpose.
 
 common common
 
@@ -76,7 +124,7 @@ library realworld-inspection
   build-depends:
     realworld,
 --  inspection-testing
---    >= 0.4 && < 0.5,
+--    >= 0.4 && < 0.5, -- doesn't support GHC 9.0 yet
 
 --  test-module:
 --    Inspection

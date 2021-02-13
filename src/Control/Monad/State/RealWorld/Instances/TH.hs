@@ -1,5 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+{-|
+Module: Control.Monad.State.RealWorld.Instances.TH
+
+Template Haskell functionality for defining levity polymorphic monadic operations.
+-}
+
 module Control.Monad.State.RealWorld.Instances.TH where
 
 -- base
@@ -18,7 +24,6 @@ import Control.Monad.RealWorld
   ( Pure#(..), Fmap#(..), Bind#(..), RunRWS#(..) )
 import Control.Monad.State.RealWorld
   ( StateS#(..) )
-
 
 --------------------------------------------------------------------------------
 
@@ -64,8 +69,8 @@ declareRuntimeRepInstances = do
   Prelude.pure ( oneDecls <> twoDecls )
 
   where
-    zero :: [ TH.Q TH.Type ]
-    zero =
+    basicReps :: [ TH.Q TH.Type ]
+    basicReps =
       [ [t|LiftedRep|]
       , [t|UnliftedRep|]
       , [t|IntRep|]
@@ -76,34 +81,50 @@ declareRuntimeRepInstances = do
       , [t|FloatRep|]
       , [t|DoubleRep|]
       , [t|TupleRep '[]|]
-      , [t|SumRep '[]|]
+      , [t|SumRep '[]|] 
       ]
 
-    tupleRep :: [ TH.Q TH.Type ] -> TH.Q TH.Type
-    tupleRep [a1] = [t|TupleRep '[ $a1 ]|]
-    tupleRep [a1,a2] = [t|TupleRep '[ $a1, $a2 ]|]
-    tupleRep [a1,a2,a3] = [t|TupleRep '[ $a1, $a2, $a3 ]|]
-    tupleRep [a1,a2,a3,a4] = [t|TupleRep '[ $a1, $a2, $a3, $a4 ]|]
-    tupleRep [a1,a2,a3,a4,a5] = [t|TupleRep '[ $a1, $a2, $a3, $a4, $a5 ]|]
-    tupleRep [a1,a2,a3,a4,a5,a6] = [t|TupleRep '[ $a1, $a2, $a3, $a4, $a5, $a6 ]|]
-    tupleRep _ = undefined
+    bakedInReps :: [ TH.Q TH.Type ]
+    bakedInReps =
+      [ [t|TupleRep '[IntRep, LiftedRep]|]
+      , [t|TupleRep '[IntRep, UnliftedRep]|]
+      , [t|TupleRep '[LiftedRep, LiftedRep]|]
+      , [t|TupleRep '[UnliftedRep, LiftedRep]|]
+      , [t|TupleRep '[LiftedRep, UnliftedRep]|]
+      , [t|TupleRep '[UnliftedRep, UnliftedRep]|]
+      , [t|TupleRep '[IntRep, IntRep, IntRep]|]
+      , [t|TupleRep '[AddrRep, WordRep]|]
+      , [t|TupleRep '[UnliftedRep, AddrRep]|]
+      ]
 
-    sumRep :: [ TH.Q TH.Type ] -> TH.Q TH.Type
-    sumRep [a1,a2] = [t|SumRep '[ $a1, $a2 ]|]
-    sumRep [a1,a2,a3] = [t|SumRep '[ $a1, $a2, $a3 ]|]
-    sumRep [a1,a2,a3,a4] = [t|SumRep '[ $a1, $a2, $a3, $a4 ]|]
-    sumRep _ = undefined
+    reps :: [ TH.Q TH.Type ]
+    reps = basicReps <> bakedInReps
 
-    one :: [ TH.Q TH.Type ]
-    one
-      =  [ tupleRep [a1] | a1 <- zero ]
-      <> [ tupleRep [a1,a2] | a1 <- zero, a2 <- zero ]
-  --    <> [ tupleRep [a1,a2,a3] | a1 <- zero, a2 <- zero, a3 <- zero ]
+  --  tupleRep :: [ TH.Q TH.Type ] -> TH.Q TH.Type
+  --  tupleRep [a1] = [t|TupleRep '[ $a1 ]|]
+  --  tupleRep [a1,a2] = [t|TupleRep '[ $a1, $a2 ]|]
+  --  tupleRep [a1,a2,a3] = [t|TupleRep '[ $a1, $a2, $a3 ]|]
+  --  tupleRep [a1,a2,a3,a4] = [t|TupleRep '[ $a1, $a2, $a3, $a4 ]|]
+  --  tupleRep [a1,a2,a3,a4,a5] = [t|TupleRep '[ $a1, $a2, $a3, $a4, $a5 ]|]
+  --  tupleRep [a1,a2,a3,a4,a5,a6] = [t|TupleRep '[ $a1, $a2, $a3, $a4, $a5, $a6 ]|]
+  --  tupleRep _ = undefined
+
+  --  sumRep :: [ TH.Q TH.Type ] -> TH.Q TH.Type
+  --  sumRep [a1,a2] = [t|SumRep '[ $a1, $a2 ]|]
+  --  sumRep [a1,a2,a3] = [t|SumRep '[ $a1, $a2, $a3 ]|]
+  --  sumRep [a1,a2,a3,a4] = [t|SumRep '[ $a1, $a2, $a3, $a4 ]|]
+  --  sumRep _ = undefined
+
+  --one :: [ TH.Q TH.Type ]
+  --one
+  --  =  [ tupleRep [a1] | a1 <- zero ]
+  --  <> [ tupleRep [a1,a2] | a1 <- zero, a2 <- zero ]
+  --  <> [ tupleRep [a1,a2,a3] | a1 <- zero, a2 <- zero, a3 <- zero ]
   --  <> [ tupleRep [a1,a2,a3,a4] | a1 <- zero, a2 <- zero, a3 <- zero, a4 <- zero ]
   --  <> [ tupleRep [a1,a2,a3,a4,a5] | a1 <- zero, a2 <- zero, a3 <- zero, a4 <- zero, a5 <- zero ]
   --  <> [ tupleRep [a1,a2,a3,a4,a5,a6] | a1 <- zero, a2 <- zero, a3 <- zero, a4 <- zero, a5 <- zero, a6 <- zero ]
-      <> [ sumRep [a1,a2] | a1 <- zero, a2 <- zero ]
-  --    <> [ sumRep [a1,a2,a3] | a1 <- zero, a2 <- zero, a3 <- zero ]
+  --  <> [ sumRep [a1,a2] | a1 <- zero, a2 <- zero ]
+  --  <> [ sumRep [a1,a2,a3] | a1 <- zero, a2 <- zero, a3 <- zero ]
   --  <> [ sumRep [a1,a2,a3,a4] | a1 <- zero, a2 <- zero, a3 <- zero, a4 <- zero ]
 
 
@@ -123,5 +144,5 @@ declareRuntimeRepInstances = do
     --  <> [ tupleRep [a1,a2,a3] | a1 <- two, a2 <- two, a3 <- two ]
     --  <> [ sumRep [a1,a2] | a1 <- two, a2 <- two ]
 
-    reps :: [ TH.Q TH.Type ]
-    reps = zero <> one -- <> two <> three
+    --reps :: [ TH.Q TH.Type ]
+    --reps = zero <> one <> two <> three
