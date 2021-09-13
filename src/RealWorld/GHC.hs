@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP #-}
 
 #include "MachDeps.h"
-#define INT32 Int#
-#define WORD32 Word#
+#define INT32 Int32#
+#define WORD32 Word32#
 
 #if WORD_SIZE_IN_BITS < 64
 #define INT64 Int64#
@@ -131,6 +131,10 @@ module RealWorld.GHC
   , atomicReadIntArray#
   , atomicWriteIntArray#
   , casIntArray#
+  , casInt8Array#
+  , casInt16Array#
+  , casInt32Array#
+  , casInt64Array#
   , fetchAddIntArray#
   , fetchSubIntArray#
   , fetchAndIntArray#
@@ -184,6 +188,10 @@ module RealWorld.GHC
   , atomicExchangeWordAddr#
   , atomicCasAddrAddr#
   , atomicCasWordAddr#
+  , atomicCasWord8Addr#
+  , atomicCasWord16Addr#
+  , atomicCasWord32Addr#
+  , atomicCasWord64Addr#
   , newMutVar#
   , readMutVar#
   , writeMutVar#
@@ -381,6 +389,10 @@ import GHC.Exts hiding
   , atomicReadIntArray#
   , atomicWriteIntArray#
   , casIntArray#
+  , casInt8Array#
+  , casInt16Array#
+  , casInt32Array#
+  , casInt64Array#
   , fetchAddIntArray#
   , fetchSubIntArray#
   , fetchAndIntArray#
@@ -434,6 +446,10 @@ import GHC.Exts hiding
   , atomicExchangeWordAddr#
   , atomicCasAddrAddr#
   , atomicCasWordAddr#
+  , atomicCasWord8Addr#
+  , atomicCasWord16Addr#
+  , atomicCasWord32Addr#
+  , atomicCasWord64Addr#
   , newMutVar#
   , readMutVar#
   , writeMutVar#
@@ -881,6 +897,7 @@ readWordArray#
 readWordArray# arg1 arg2 =
   StateS# ( GHC.Exts.readWordArray# arg1 arg2 )
 
+-- | Read a machine address; offset in machine words.
 readAddrArray#
   :: MutableByteArray# s
   -> Int# -- ^ offset (in machine words)
@@ -888,20 +905,23 @@ readAddrArray#
 readAddrArray# arg1 arg2 =
   StateS# ( GHC.Exts.readAddrArray# arg1 arg2 )
 
+-- | Read a single-precision floating-point value; offset in 4-byte words.
 readFloatArray#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in units of 4 bytes)
   -> StateS# s Float#
 readFloatArray# arg1 arg2 =
   StateS# ( GHC.Exts.readFloatArray# arg1 arg2 )
 
+-- | Read a double-precision floating-point value; offset in 8-byte words.
 readDoubleArray#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in 8 byte units)
   -> StateS# s Double#
 readDoubleArray# arg1 arg2 =
   StateS# ( GHC.Exts.readDoubleArray# arg1 arg2 )
 
+-- | Read a 'StablePtr#' value; offset in machine words.
 readStablePtrArray#
   :: MutableByteArray# s
   -> Int# -- ^ offset (in machine words)
@@ -909,164 +929,186 @@ readStablePtrArray#
 readStablePtrArray# arg1 arg2 =
   StateS# ( GHC.Exts.readStablePtrArray# arg1 arg2 )
 
+-- | Read a 8-bit signed integer; offset in bytes.
 readInt8Array#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Int#
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s Int8#
 readInt8Array# arg1 arg2 =
   StateS# ( GHC.Exts.readInt8Array# arg1 arg2 )
 
+-- | Read a 16-bit signed integer; offset in 2-byte words.
 readInt16Array#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Int#
+  -> Int# -- ^ offset (in units of 2 bytes)
+  -> StateS# s Int16#
 readInt16Array# arg1 arg2 =
   StateS# ( GHC.Exts.readInt16Array# arg1 arg2 )
 
+-- | Read a 32-bit signed integer; offset in 4-byte words.
 readInt32Array#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in units of 4 bytes)
   -> StateS# s INT32
 readInt32Array# arg1 arg2 =
   StateS# ( GHC.Exts.readInt32Array# arg1 arg2 )
 
+-- | Read a 64-bit signed integer; offset in 8-byte words.
 readInt64Array#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in units of 8 bytes)
   -> StateS# s INT64
 readInt64Array# arg1 arg2 =
   StateS# ( GHC.Exts.readInt64Array# arg1 arg2 )
 
+-- | Read a 8-bit unsigned integer; offset in bytes.
 readWord8Array#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Word#
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s Word8#
 readWord8Array# arg1 arg2 =
   StateS# ( GHC.Exts.readWord8Array# arg1 arg2 )
 
+-- | Read a 16-bit unsigned integer; offset in 2-byte words.
 readWord16Array#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Word#
+  -> Int# -- ^ offset (in units of 2 bytes)
+  -> StateS# s Word16#
 readWord16Array# arg1 arg2 =
   StateS# ( GHC.Exts.readWord16Array# arg1 arg2 )
 
+-- | Read a 32-bit unsigned integer; offset in 4-byte words.
 readWord32Array#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in units of 4 bytes)
   -> StateS# s WORD32
 readWord32Array# arg1 arg2 =
   StateS# ( GHC.Exts.readWord32Array# arg1 arg2 )
 
+-- | Read a 64-bit unsigned integer; offset in 8-byte words.
 readWord64Array#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in units of 8 bytes)
   -> StateS# s WORD64
 readWord64Array# arg1 arg2 =
   StateS# ( GHC.Exts.readWord64Array# arg1 arg2 )
 
+-- | Read a 8-bit character; offset in bytes.
 readWord8ArrayAsChar#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in bytes)
   -> StateS# s Char#
 readWord8ArrayAsChar# arg1 arg2 =
   StateS# ( GHC.Exts.readWord8ArrayAsChar# arg1 arg2 )
 
+-- | Read a 32-bit character; offset in bytes.
 readWord8ArrayAsWideChar#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in bytes)
   -> StateS# s Char#
 readWord8ArrayAsWideChar# arg1 arg2 =
   StateS# ( GHC.Exts.readWord8ArrayAsWideChar# arg1 arg2 )
 
-readWord8ArrayAsAddr#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Addr#
-readWord8ArrayAsAddr# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsAddr# arg1 arg2 )
-
-readWord8ArrayAsFloat#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Float#
-readWord8ArrayAsFloat# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsFloat# arg1 arg2 )
-
-readWord8ArrayAsDouble#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Double#
-readWord8ArrayAsDouble# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsDouble# arg1 arg2 )
-
-readWord8ArrayAsStablePtr#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s ( StablePtr# a )
-readWord8ArrayAsStablePtr# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsStablePtr# arg1 arg2 )
-
-readWord8ArrayAsInt16#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Int#
-readWord8ArrayAsInt16# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsInt16# arg1 arg2 )
-
-readWord8ArrayAsInt32#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s INT32
-readWord8ArrayAsInt32# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsInt32# arg1 arg2 )
-
-readWord8ArrayAsInt64#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s INT64
-readWord8ArrayAsInt64# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsInt64# arg1 arg2 )
-
+-- | Read a word-sized integer; offset in bytes.
 readWord8ArrayAsInt#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in bytes)
   -> StateS# s Int#
 readWord8ArrayAsInt# arg1 arg2 =
   StateS# ( GHC.Exts.readWord8ArrayAsInt# arg1 arg2 )
 
-readWord8ArrayAsWord16#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s Word#
-readWord8ArrayAsWord16# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsWord16# arg1 arg2 )
-
-readWord8ArrayAsWord32#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s WORD32
-readWord8ArrayAsWord32# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsWord32# arg1 arg2 )
-
-readWord8ArrayAsWord64#
-  :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
-  -> StateS# s WORD64
-readWord8ArrayAsWord64# arg1 arg2 =
-  StateS# ( GHC.Exts.readWord8ArrayAsWord64# arg1 arg2 )
-
+-- | Read a word-sized unsigned integer; offset in bytes.
 readWord8ArrayAsWord#
   :: MutableByteArray# s
-  -> Int# -- ^ offset (in machine words)
+  -> Int# -- ^ offset (in bytes)
   -> StateS# s Word#
 readWord8ArrayAsWord# arg1 arg2 =
   StateS# ( GHC.Exts.readWord8ArrayAsWord# arg1 arg2 )
 
+-- | Read a machine address; offset in bytes.
+readWord8ArrayAsAddr#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s Addr#
+readWord8ArrayAsAddr# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsAddr# arg1 arg2 )
+
+-- | Read a single-precision floating-point value; offset in bytes.
+readWord8ArrayAsFloat#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s Float#
+readWord8ArrayAsFloat# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsFloat# arg1 arg2 )
+
+-- | Read a double-precision floating-point value; offset in bytes.
+readWord8ArrayAsDouble#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s Double#
+readWord8ArrayAsDouble# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsDouble# arg1 arg2 )
+
+-- | Read a 'StablePtr#' value; offset in bytes.
+readWord8ArrayAsStablePtr#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s ( StablePtr# a )
+readWord8ArrayAsStablePtr# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsStablePtr# arg1 arg2 )
+
+-- | Read a 16-bit signed integer; offset in bytes.
+readWord8ArrayAsInt16#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s Int16#
+readWord8ArrayAsInt16# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsInt16# arg1 arg2 )
+
+-- | Read a 32-bit signed integer; offset in bytes.
+readWord8ArrayAsInt32#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s INT32
+readWord8ArrayAsInt32# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsInt32# arg1 arg2 )
+
+-- | Read a 64-bit signed integer; offset in bytes.
+readWord8ArrayAsInt64#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s INT64
+readWord8ArrayAsInt64# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsInt64# arg1 arg2 )
+
+-- | Read a 16-bit unsigned integer; offset in bytes.
+readWord8ArrayAsWord16#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s Word16#
+readWord8ArrayAsWord16# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsWord16# arg1 arg2 )
+
+-- | Read a 32-bit unsigned integer; offset in bytes.
+readWord8ArrayAsWord32#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s Word32#
+readWord8ArrayAsWord32# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsWord32# arg1 arg2 )
+
+-- | Read a 64-bit unsigned integer; offset in bytes.
+readWord8ArrayAsWord64#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StateS# s WORD64
+readWord8ArrayAsWord64# arg1 arg2 =
+  StateS# ( GHC.Exts.readWord8ArrayAsWord64# arg1 arg2 )
+
 -- | Write 8-bit character; offset in bytes.
 writeCharArray#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in bytes)
   -> Char# -- ^ value to write
   -> StateS# s (##)
 writeCharArray# arg1 arg2 arg3 =
@@ -1074,10 +1116,10 @@ writeCharArray# arg1 arg2 arg3 =
     case GHC.Exts.writeCharArray# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
--- | Write 31-bit character; offset in 4-byte words.
+-- | Write 32-bit character; offset in 4-byte words.
 writeWideCharArray#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in units of 4 bytes)
   -> Char# -- ^ value to write
   -> StateS# s (##)
 writeWideCharArray# arg1 arg2 arg3 =
@@ -1085,9 +1127,10 @@ writeWideCharArray# arg1 arg2 arg3 =
     case GHC.Exts.writeWideCharArray# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a word-sized integer; offset in machine words.
 writeIntArray#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in machine words)
   -> Int# -- ^ value to write
   -> StateS# s (##)
 writeIntArray# arg1 arg2 arg3 =
@@ -1095,9 +1138,10 @@ writeIntArray# arg1 arg2 arg3 =
     case GHC.Exts.writeIntArray# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a word-sized unsigned integer; offset in machine words.
 writeWordArray#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in machine words)
   -> Word# -- ^ value to write
   -> StateS# s (##)
 writeWordArray# arg1 arg2 arg3 =
@@ -1105,9 +1149,10 @@ writeWordArray# arg1 arg2 arg3 =
     case GHC.Exts.writeWordArray# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a machine address; offset in machine words.
 writeAddrArray#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in machine words)
   -> Addr# -- ^ value to write
   -> StateS# s (##)
 writeAddrArray# arg1 arg2 arg3 =
@@ -1115,9 +1160,10 @@ writeAddrArray# arg1 arg2 arg3 =
     case GHC.Exts.writeAddrArray# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a single-precision floating-point value; offset in 4-byte words.
 writeFloatArray#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in units of 4 bytes)
   -> Float# -- ^ value to write
   -> StateS# s (##)
 writeFloatArray# arg1 arg2 arg3 =
@@ -1125,9 +1171,10 @@ writeFloatArray# arg1 arg2 arg3 =
     case GHC.Exts.writeFloatArray# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a double-precision floating-point value; offset in 8-byte words.
 writeDoubleArray#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in units of 8 bytes)
   -> Double# -- ^ value to write
   -> StateS# s (##)
 writeDoubleArray# arg1 arg2 arg3 =
@@ -1135,9 +1182,10 @@ writeDoubleArray# arg1 arg2 arg3 =
     case GHC.Exts.writeDoubleArray# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 'StablePtr#' value; offset in machine words.
 writeStablePtrArray#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in machine words)
   -> StablePtr# a -- ^ value to write
   -> StateS# s (##)
 writeStablePtrArray# arg1 arg2 arg3 =
@@ -1145,29 +1193,32 @@ writeStablePtrArray# arg1 arg2 arg3 =
     case GHC.Exts.writeStablePtrArray# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 8-bit signed integer; offset in bytes
 writeInt8Array#
   :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Int# -- ^ value to write
+  -> Int# -- ^ offset (in bytes)
+  -> Int8# -- ^ value to write
   -> StateS# s (##)
 writeInt8Array# arg1 arg2 arg3 =
   StateS# \ s# ->
     case GHC.Exts.writeInt8Array# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 16-bit signed integer; offset in 2-byte words.
 writeInt16Array#
   :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Int# -- ^ value to write
+  -> Int# -- ^ offset (in units of 2 bytes)
+  -> Int16# -- ^ value to write
   -> StateS# s (##)
 writeInt16Array# arg1 arg2 arg3 =
   StateS# \ s# ->
     case GHC.Exts.writeInt16Array# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 32-bit signed integer; offset in 4-byte words.
 writeInt32Array#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in units of 4 bytes)
   -> INT32 -- ^ value to write
   -> StateS# s (##)
 writeInt32Array# arg1 arg2 arg3 =
@@ -1175,9 +1226,10 @@ writeInt32Array# arg1 arg2 arg3 =
     case GHC.Exts.writeInt32Array# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 64-bit signed integer; offset in 8-byte words.
 writeInt64Array#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in units of 16 bytes)
   -> INT64 -- ^ value to write
   -> StateS# s (##)
 writeInt64Array# arg1 arg2 arg3 =
@@ -1185,29 +1237,32 @@ writeInt64Array# arg1 arg2 arg3 =
     case GHC.Exts.writeInt64Array# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 8-bit unsigned integer; offset in bytes.
 writeWord8Array#
   :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Word# -- ^ value to write
+  -> Int# -- ^ offset (in bytes)
+  -> Word8# -- ^ value to write
   -> StateS# s (##)
 writeWord8Array# arg1 arg2 arg3 =
   StateS# \ s# ->
     case GHC.Exts.writeWord8Array# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 16-bit unsigned integer; offset in 2-byte words.
 writeWord16Array#
   :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Word# -- ^ value to write
+  -> Int# -- ^ offset (in units of 2 bytes)
+  -> Word16# -- ^ value to write
   -> StateS# s (##)
 writeWord16Array# arg1 arg2 arg3 =
   StateS# \ s# ->
     case GHC.Exts.writeWord16Array# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 32-bit unsigned integer; offset in 4-byte words.
 writeWord32Array#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in units of 4 bytes)
   -> WORD32 -- ^ value to write
   -> StateS# s (##)
 writeWord32Array# arg1 arg2 arg3 =
@@ -1215,9 +1270,10 @@ writeWord32Array# arg1 arg2 arg3 =
     case GHC.Exts.writeWord32Array# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 64-bit unsigned integer; offset in 8-byte words.
 writeWord64Array#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in units of 8 bytes)
   -> WORD64 -- ^ value to write
   -> StateS# s (##)
 writeWord64Array# arg1 arg2 arg3 =
@@ -1225,9 +1281,10 @@ writeWord64Array# arg1 arg2 arg3 =
     case GHC.Exts.writeWord64Array# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 8-bit character; offset in bytes.
 writeWord8ArrayAsChar#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in bytes)
   -> Char# -- ^ value to write
   -> StateS# s (##)
 writeWord8ArrayAsChar# arg1 arg2 arg3 =
@@ -1235,9 +1292,10 @@ writeWord8ArrayAsChar# arg1 arg2 arg3 =
     case GHC.Exts.writeWord8ArrayAsChar# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 32-bit character; offset in bytes.
 writeWord8ArrayAsWideChar#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in bytes)
   -> Char# -- ^ value to write
   -> StateS# s (##)
 writeWord8ArrayAsWideChar# arg1 arg2 arg3 =
@@ -1245,79 +1303,10 @@ writeWord8ArrayAsWideChar# arg1 arg2 arg3 =
     case GHC.Exts.writeWord8ArrayAsWideChar# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
-writeWord8ArrayAsAddr#
-  :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Addr# -- ^ value to write
-  -> StateS# s (##)
-writeWord8ArrayAsAddr# arg1 arg2 arg3 =
-  StateS# \ s# ->
-    case GHC.Exts.writeWord8ArrayAsAddr# arg1 arg2 arg3 s# of
-      t# -> (# t#, (##) #)
-
-writeWord8ArrayAsFloat#
-  :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Float# -- ^ value to write
-  -> StateS# s (##)
-writeWord8ArrayAsFloat# arg1 arg2 arg3 =
-  StateS# \ s# ->
-    case GHC.Exts.writeWord8ArrayAsFloat# arg1 arg2 arg3 s# of
-      t# -> (# t#, (##) #)
-
-writeWord8ArrayAsDouble#
-  :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Double# -- ^ value to write
-  -> StateS# s (##)
-writeWord8ArrayAsDouble# arg1 arg2 arg3 =
-  StateS# \ s# ->
-    case GHC.Exts.writeWord8ArrayAsDouble# arg1 arg2 arg3 s# of
-      t# -> (# t#, (##) #)
-
-writeWord8ArrayAsStablePtr#
-  :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> StablePtr# a -- ^ value to write
-  -> StateS# s (##)
-writeWord8ArrayAsStablePtr# arg1 arg2 arg3 =
-  StateS# \ s# ->
-    case GHC.Exts.writeWord8ArrayAsStablePtr# arg1 arg2 arg3 s# of
-      t# -> (# t#, (##) #)
-
-writeWord8ArrayAsInt16#
-  :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Int# -- ^ value to write
-  -> StateS# s (##)
-writeWord8ArrayAsInt16# arg1 arg2 arg3 =
-  StateS# \ s# ->
-    case GHC.Exts.writeWord8ArrayAsInt16# arg1 arg2 arg3 s# of
-      t# -> (# t#, (##) #)
-
-writeWord8ArrayAsInt32#
-  :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> INT32 -- ^ value to write
-  -> StateS# s (##)
-writeWord8ArrayAsInt32# arg1 arg2 arg3 =
-  StateS# \ s# ->
-    case GHC.Exts.writeWord8ArrayAsInt32# arg1 arg2 arg3 s# of
-      t# -> (# t#, (##) #)
-
-writeWord8ArrayAsInt64#
-  :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> INT64 -- ^ value to write
-  -> StateS# s (##)
-writeWord8ArrayAsInt64# arg1 arg2 arg3 =
-  StateS# \ s# ->
-    case GHC.Exts.writeWord8ArrayAsInt64# arg1 arg2 arg3 s# of
-      t# -> (# t#, (##) #)
-
+-- | Write a word-sized integer; offset in bytes.
 writeWord8ArrayAsInt#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in bytes)
   -> Int# -- ^ value to write
   -> StateS# s (##)
 writeWord8ArrayAsInt# arg1 arg2 arg3 =
@@ -1325,19 +1314,109 @@ writeWord8ArrayAsInt# arg1 arg2 arg3 =
     case GHC.Exts.writeWord8ArrayAsInt# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a word-sized unsigned integer; offset in bytes.
+writeWord8ArrayAsWord#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> Word# -- ^ value to write
+  -> StateS# s (##)
+writeWord8ArrayAsWord# arg1 arg2 arg3 =
+  StateS# \ s# ->
+    case GHC.Exts.writeWord8ArrayAsWord# arg1 arg2 arg3 s# of
+      t# -> (# t#, (##) #)
+
+-- | Write a machine address; offset in bytes.
+writeWord8ArrayAsAddr#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> Addr# -- ^ value to write
+  -> StateS# s (##)
+writeWord8ArrayAsAddr# arg1 arg2 arg3 =
+  StateS# \ s# ->
+    case GHC.Exts.writeWord8ArrayAsAddr# arg1 arg2 arg3 s# of
+      t# -> (# t#, (##) #)
+
+-- | Write a single-precision floating-point value; offset in bytes.
+writeWord8ArrayAsFloat#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> Float# -- ^ value to write
+  -> StateS# s (##)
+writeWord8ArrayAsFloat# arg1 arg2 arg3 =
+  StateS# \ s# ->
+    case GHC.Exts.writeWord8ArrayAsFloat# arg1 arg2 arg3 s# of
+      t# -> (# t#, (##) #)
+
+-- | Write a double-precision floating-point value; offset in bytes.
+writeWord8ArrayAsDouble#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> Double# -- ^ value to write
+  -> StateS# s (##)
+writeWord8ArrayAsDouble# arg1 arg2 arg3 =
+  StateS# \ s# ->
+    case GHC.Exts.writeWord8ArrayAsDouble# arg1 arg2 arg3 s# of
+      t# -> (# t#, (##) #)
+
+-- | Write a 'StablePtr#' value; offset in bytes.
+writeWord8ArrayAsStablePtr#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> StablePtr# a -- ^ value to write
+  -> StateS# s (##)
+writeWord8ArrayAsStablePtr# arg1 arg2 arg3 =
+  StateS# \ s# ->
+    case GHC.Exts.writeWord8ArrayAsStablePtr# arg1 arg2 arg3 s# of
+      t# -> (# t#, (##) #)
+
+-- | Write a 16-bit signed integer; offset in bytes.
+writeWord8ArrayAsInt16#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> Int16# -- ^ value to write
+  -> StateS# s (##)
+writeWord8ArrayAsInt16# arg1 arg2 arg3 =
+  StateS# \ s# ->
+    case GHC.Exts.writeWord8ArrayAsInt16# arg1 arg2 arg3 s# of
+      t# -> (# t#, (##) #)
+
+-- | Write a 32-bit signed integer; offset in bytes.
+writeWord8ArrayAsInt32#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> INT32 -- ^ value to write
+  -> StateS# s (##)
+writeWord8ArrayAsInt32# arg1 arg2 arg3 =
+  StateS# \ s# ->
+    case GHC.Exts.writeWord8ArrayAsInt32# arg1 arg2 arg3 s# of
+      t# -> (# t#, (##) #)
+
+-- | Write a 64-bit signed integer; offset in bytes.
+writeWord8ArrayAsInt64#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset (in bytes)
+  -> INT64 -- ^ value to write
+  -> StateS# s (##)
+writeWord8ArrayAsInt64# arg1 arg2 arg3 =
+  StateS# \ s# ->
+    case GHC.Exts.writeWord8ArrayAsInt64# arg1 arg2 arg3 s# of
+      t# -> (# t#, (##) #)
+
+-- | Write a 16-bit unsigned integer; offset in bytes.
 writeWord8ArrayAsWord16#
   :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Word# -- ^ value to write
+  -> Int# -- ^ offset (in bytes)
+  -> Word16# -- ^ value to write
   -> StateS# s (##)
 writeWord8ArrayAsWord16# arg1 arg2 arg3 =
   StateS# \ s# ->
     case GHC.Exts.writeWord8ArrayAsWord16# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | Write a 32-bit unsigned integer; offset in bytes.
 writeWord8ArrayAsWord32#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in bytes)
   -> WORD32 -- ^ value to write
   -> StateS# s (##)
 writeWord8ArrayAsWord32# arg1 arg2 arg3 =
@@ -1345,24 +1424,15 @@ writeWord8ArrayAsWord32# arg1 arg2 arg3 =
     case GHC.Exts.writeWord8ArrayAsWord32# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
+-- | 
 writeWord8ArrayAsWord64#
   :: MutableByteArray# s
-  -> Int# -- ^ index
+  -> Int# -- ^ offset (in bytes)
   -> WORD64 -- ^ value to write
   -> StateS# s (##)
 writeWord8ArrayAsWord64# arg1 arg2 arg3 =
   StateS# \ s# ->
     case GHC.Exts.writeWord8ArrayAsWord64# arg1 arg2 arg3 s# of
-      t# -> (# t#, (##) #)
-
-writeWord8ArrayAsWord#
-  :: MutableByteArray# s
-  -> Int# -- ^ index
-  -> Word# -- ^ value to write
-  -> StateS# s (##)
-writeWord8ArrayAsWord# arg1 arg2 arg3 =
-  StateS# \ s# ->
-    case GHC.Exts.writeWord8ArrayAsWord# arg1 arg2 arg3 s# of
       t# -> (# t#, (##) #)
 
 -- | @ copyByteArray# src src_ofs dst dst_ofs n@
@@ -1482,12 +1552,68 @@ atomicWriteIntArray# arg1 arg2 arg3 =
 -- barrier.
 casIntArray#
   :: MutableByteArray# s
-  -> Int# -- ^ offset
+  -> Int# -- ^ offset in machine words
   -> Int# -- ^ expected old value
   -> Int# -- ^ value to (potentially) write
   -> StateS# s Int#
 casIntArray# arg1 arg2 arg3 arg4 =
   StateS# ( GHC.Exts.casIntArray# arg1 arg2 arg3 arg4 )
+
+-- | Given an array, an offset in bytes, the expected old value, and
+-- the new value, perform an atomic compare and swap i.e. write the new
+-- value if the current value matches the provided old value. Returns
+-- the value of the element before the operation. Implies a full memory
+-- barrier.
+casInt8Array#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset in bytes
+  -> Int8# -- ^ expected old value
+  -> Int8# -- ^ value to (potentially) write
+  -> StateS# s Int8#
+casInt8Array# arg1 arg2 arg3 arg4 =
+  StateS# ( GHC.Exts.casInt8Array# arg1 arg2 arg3 arg4 )
+
+-- | Given an array, an offset in 16 bit units, the expected old value, and
+-- the new value, perform an atomic compare and swap i.e. write the new
+-- value if the current value matches the provided old value. Returns
+-- the value of the element before the operation. Implies a full memory
+-- barrier.
+casInt16Array#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset in 16 bit units
+  -> Int16# -- ^ expected old value
+  -> Int16# -- ^ value to (potentially) write
+  -> StateS# s Int16#
+casInt16Array# arg1 arg2 arg3 arg4 =
+  StateS# ( GHC.Exts.casInt16Array# arg1 arg2 arg3 arg4 )
+
+-- | Given an array, an offset in 32 bit units, the expected old value, and
+-- the new value, perform an atomic compare and swap i.e. write the new
+-- value if the current value matches the provided old value. Returns
+-- the value of the element before the operation. Implies a full memory
+-- barrier.
+casInt32Array#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset in 32 bit units
+  -> INT32 -- ^ expected old value
+  -> INT32 -- ^ value to (potentially) write
+  -> StateS# s INT32
+casInt32Array# arg1 arg2 arg3 arg4 =
+  StateS# ( GHC.Exts.casInt32Array# arg1 arg2 arg3 arg4 )
+
+-- | Given an array, an offset in 64 bit units, the expected old value, and
+-- the new value, perform an atomic compare and swap i.e. write the new
+-- value if the current value matches the provided old value. Returns
+-- the value of the element before the operation. Implies a full memory
+-- barrier.
+casInt64Array#
+  :: MutableByteArray# s
+  -> Int# -- ^ offset in 64 bit units
+  -> INT64 -- ^ expected old value
+  -> INT64 -- ^ value to (potentially) write
+  -> StateS# s INT64
+casInt64Array# arg1 arg2 arg3 arg4 =
+  StateS# ( GHC.Exts.casInt64Array# arg1 arg2 arg3 arg4 )
 
 -- | Given an array, and offset in machine words, and a value to add,
 -- atomically add the value to the element. Returns the value of the
@@ -1726,14 +1852,14 @@ readStablePtrOffAddr# arg1 arg2 =
 readInt8OffAddr#
   :: Addr#
   -> Int# -- ^ offset (in machine words)
-  -> StateS# s Int#
+  -> StateS# s Int8#
 readInt8OffAddr# arg1 arg2 =
   StateS# ( GHC.Exts.readInt8OffAddr# arg1 arg2 )
 
 readInt16OffAddr#
   :: Addr#
   -> Int# -- ^ offset (in machine words)
-  -> StateS# s Int#
+  -> StateS# s Int16#
 readInt16OffAddr# arg1 arg2 =
   StateS# ( GHC.Exts.readInt16OffAddr# arg1 arg2 )
 
@@ -1754,14 +1880,14 @@ readInt64OffAddr# arg1 arg2 =
 readWord8OffAddr#
   :: Addr#
   -> Int# -- ^ offset (in machine words)
-  -> StateS# s Word#
+  -> StateS# s Word8#
 readWord8OffAddr# arg1 arg2 =
   StateS# ( GHC.Exts.readWord8OffAddr# arg1 arg2 )
 
 readWord16OffAddr#
   :: Addr#
   -> Int# -- ^ offset (in machine words)
-  -> StateS# s Word#
+  -> StateS# s Word16#
 readWord16OffAddr# arg1 arg2 =
   StateS# ( GHC.Exts.readWord16OffAddr# arg1 arg2 )
 
@@ -1862,7 +1988,7 @@ writeStablePtrOffAddr# arg1 arg2 arg3 =
 writeInt8OffAddr#
   :: Addr#
   -> Int# -- ^ offset (in machine words)
-  -> Int# -- ^ value to write
+  -> Int8# -- ^ value to write
   -> StateS# s (##)
 writeInt8OffAddr# arg1 arg2 arg3 =
   StateS# \ s# ->
@@ -1872,7 +1998,7 @@ writeInt8OffAddr# arg1 arg2 arg3 =
 writeInt16OffAddr#
   :: Addr#
   -> Int# -- ^ offset (in machine words)
-  -> Int# -- ^ value to write
+  -> Int16# -- ^ value to write
   -> StateS# s (##)
 writeInt16OffAddr# arg1 arg2 arg3 =
   StateS# \ s# ->
@@ -1902,7 +2028,7 @@ writeInt64OffAddr# arg1 arg2 arg3 =
 writeWord8OffAddr#
   :: Addr#
   -> Int# -- ^ offset (in machine words)
-  -> Word# -- ^ value to write
+  -> Word8# -- ^ value to write
   -> StateS# s (##)
 writeWord8OffAddr# arg1 arg2 arg3 =
   StateS# \ s# ->
@@ -1912,7 +2038,7 @@ writeWord8OffAddr# arg1 arg2 arg3 =
 writeWord16OffAddr#
   :: Addr#
   -> Int# -- ^ offset (in machine words)
-  -> Word# -- ^ value to write
+  -> Word16# -- ^ value to write
   -> StateS# s (##)
 writeWord16OffAddr# arg1 arg2 arg3 =
   StateS# \ s# ->
@@ -1958,13 +2084,13 @@ atomicExchangeWordAddr# arg1 arg2 =
   StateS# ( GHC.Exts.atomicExchangeWordAddr# arg1 arg2 )
 
 -- | Compare and swap on a word-sized memory location.
--- 
+--
 -- Use as: \s -> atomicCasAddrAddr# location expected desired s
--- 
+--
 -- This version always returns the old value read. This follows the normal
 -- protocol for CAS operations (and matches the underlying instruction on
 -- most architectures).
--- 
+--
 -- Implies a full memory barrier.
 atomicCasAddrAddr#
   :: Addr# -- ^ address at which to perform the operation
@@ -1975,13 +2101,13 @@ atomicCasAddrAddr# arg1 arg2 arg3 =
   StateS# ( GHC.Exts.atomicCasAddrAddr# arg1 arg2 arg3 )
 
 -- | Compare and swap on a word-sized and aligned memory location.
--- 
+--
 -- Use as: \s -> atomicCasWordAddr# location expected desired s
--- 
+--
 -- This version always returns the old value read. This follows the normal
 -- protocol for CAS operations (and matches the underlying instruction on
 -- most architectures).
--- 
+--
 -- Implies a full memory barrier.
 atomicCasWordAddr#
   :: Addr# -- ^ address at which to perform the operation
@@ -1990,6 +2116,74 @@ atomicCasWordAddr#
   -> StateS# s Word#
 atomicCasWordAddr# arg1 arg2 arg3 =
   StateS# ( GHC.Exts.atomicCasWordAddr# arg1 arg2 arg3 )
+
+-- | Compare and swap on a 8 bit-sized and aligned memory location.
+--
+-- Use as: \s -> atomicCasWordAddr8# location expected desired s
+--
+-- This version always returns the old value read. This follows the normal
+-- protocol for CAS operations (and matches the underlying instruction on
+-- most architectures).
+--
+-- Implies a full memory barrier.
+atomicCasWord8Addr#
+  :: Addr# -- ^ address at which to perform the operation
+  -> Word8# -- ^ expected old value
+  -> Word8# -- ^ new value
+  -> StateS# s Word8#
+atomicCasWord8Addr# arg1 arg2 arg3 =
+  StateS# ( GHC.Exts.atomicCasWord8Addr# arg1 arg2 arg3 )
+
+-- | Compare and swap on a 16 bit-sized and aligned memory location.
+--
+-- Use as: \s -> atomicCasWordAddr16# location expected desired s
+--
+-- This version always returns the old value read. This follows the normal
+-- protocol for CAS operations (and matches the underlying instruction on
+-- most architectures).
+--
+-- Implies a full memory barrier.
+atomicCasWord16Addr#
+  :: Addr# -- ^ address at which to perform the operation
+  -> Word16# -- ^ expected old value
+  -> Word16# -- ^ new value
+  -> StateS# s Word16#
+atomicCasWord16Addr# arg1 arg2 arg3 =
+  StateS# ( GHC.Exts.atomicCasWord16Addr# arg1 arg2 arg3 )
+
+-- | Compare and swap on a 32 bit-sized and aligned memory location.
+--
+-- Use as: \s -> atomicCasWordAddr32# location expected desired s
+--
+-- This version always returns the old value read. This follows the normal
+-- protocol for CAS operations (and matches the underlying instruction on
+-- most architectures).
+--
+-- Implies a full memory barrier.
+atomicCasWord32Addr#
+  :: Addr# -- ^ address at which to perform the operation
+  -> WORD32 -- ^ expected old value
+  -> WORD32 -- ^ new value
+  -> StateS# s WORD32
+atomicCasWord32Addr# arg1 arg2 arg3 =
+  StateS# ( GHC.Exts.atomicCasWord32Addr# arg1 arg2 arg3 )
+
+-- | Compare and swap on a 64 bit-sized and aligned memory location.
+--
+-- Use as: \s -> atomicCasWordAddr64# location expected desired s
+--
+-- This version always returns the old value read. This follows the normal
+-- protocol for CAS operations (and matches the underlying instruction on
+-- most architectures).
+--
+-- Implies a full memory barrier.
+atomicCasWord64Addr#
+  :: Addr# -- ^ address at which to perform the operation
+  -> WORD64 -- ^ expected old value
+  -> WORD64 -- ^ new value
+  -> StateS# s WORD64
+atomicCasWord64Addr# arg1 arg2 arg3 =
+  StateS# ( GHC.Exts.atomicCasWord64Addr# arg1 arg2 arg3 )
 
 -- | Create 'MutVar#' with specified initial value.
 newMutVar#
@@ -2271,17 +2465,17 @@ waitWrite# arg1 =
       t# -> (# t#, (##) #)
 
 fork#
-  :: a
+  :: StateS# RealWorld a
   -> StateS# RealWorld ThreadId#
-fork# arg1 =
-  StateS# ( GHC.Exts.fork# arg1 )
+fork# ( StateS# f ) =
+  StateS# ( GHC.Exts.fork# f )
 
 forkOn#
   :: Int#
-  -> a
+  -> StateS# RealWorld a
   -> StateS# RealWorld ThreadId#
-forkOn# arg1 arg2 =
-  StateS# ( GHC.Exts.forkOn# arg1 arg2 )
+forkOn# arg1 ( StateS# f ) =
+  StateS# ( GHC.Exts.forkOn# arg1 f )
 
 killThread#
   :: ThreadId#
@@ -2340,21 +2534,21 @@ deRefWeak# arg1 =
     (# t#, res1, res2 #) -> (# t#, (# res1, res2 #) #)
 
 -- | Levity-polymorphic weak pointer operations
-class WeakOps# ( rep :: RuntimeRep ) where
+class WeakOps# ( l :: Levity ) where
   mkWeak#
-    :: ( o :: TYPE rep )
+    :: ( o :: TYPE ( BoxedRep l ) )
     -> b
     -> StateS# RealWorld c
     -> StateS# RealWorld ( Weak# b )
   mkWeakNoFinalizer#
-    :: ( o :: TYPE rep )
+    :: ( o :: TYPE ( BoxedRep l ) )
     -> b
     -> StateS# RealWorld ( Weak# b )
   touch#
-    :: ( o :: TYPE rep )
+    :: ( o :: TYPE ( BoxedRep l ) )
     -> StateS# RealWorld (##)
 
-instance WeakOps# LiftedRep where
+instance WeakOps# Lifted where
   mkWeak# arg1 arg2 ( StateS# arg3 ) =
     StateS# ( GHC.Exts.mkWeak# arg1 arg2 arg3 )
   mkWeakNoFinalizer# arg1 arg2 =
@@ -2362,7 +2556,7 @@ instance WeakOps# LiftedRep where
   touch# arg1 =
     StateS# \ s# -> case GHC.Exts.touch# arg1 s# of
       t# -> (# t#, (##) #)
-instance WeakOps# UnliftedRep where
+instance WeakOps# Unlifted where
   mkWeak# arg1 arg2 ( StateS# arg3 ) =
     StateS# ( GHC.Exts.mkWeak# arg1 arg2 arg3 )
   mkWeakNoFinalizer# arg1 arg2 =

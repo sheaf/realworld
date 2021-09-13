@@ -1,6 +1,6 @@
 cabal-version:  3.0
 name:           realworld
-version:        90.0.1
+version:        94.0.1
 author:         Sam Derbyshire
 maintainer:     Sam Derbyshire
 license:        BSD-3-Clause
@@ -59,7 +59,7 @@ common common
 
   default-language:
     Haskell2010
-  
+
   default-extensions:
     BangPatterns
     BlockArguments
@@ -87,11 +87,11 @@ common libs
 
   build-depends:
     base
-      >= 4.15 && < 4.16,
+      >= 4.15 && < 4.18,
     ghc-bignum
-      >= 1.0  && < 1.1 ,
+      >= 1.0  && < 1.3 ,
     template-haskell
-      >= 2.17 && < 2.18,
+      >= 2.17 && < 2.19,
 
 library
 
@@ -102,15 +102,16 @@ library
     src
 
   exposed-modules:
-    RealWorld.Monad
-    RealWorld.Monad.State
     RealWorld.GHC
     RealWorld.GHC.BigNum
+    RealWorld.Monad
+    RealWorld.Monad.State
+    RealWorld.Prim
 
     RealWorld.Instances.TH
-
-  other-modules:
     RealWorld.Instances
+    RealWorld.Prim.Class
+
 
 library realworld-inspection
 --test-suite realworld-inspection

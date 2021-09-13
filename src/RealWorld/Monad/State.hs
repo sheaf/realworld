@@ -1,10 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 {-|
 Module: RealWorld.Monad.State
 
-Levity polymorphic 'RealWorld' token state-passing monad.
+Representation-polymorphic 'RealWorld' token state-passing monad.
 -}
 
 module RealWorld.Monad.State
@@ -24,7 +25,7 @@ import RealWorld.Monad
 
 --------------------------------------------------------------------------------
 
--- | A levity polymorphic state monad for 'State#' tokens.
+-- | A representation-polymorphic state monad for 'State#' tokens.
 type StateS# :: Type -> forall ( rep :: RuntimeRep ). TYPE rep -> Type
 newtype StateS# s a = StateS# { runStateS# :: State# s -> (# State# s, a #) }
 
@@ -32,9 +33,10 @@ instance {-# OVERLAPPABLE #-}
   TypeError
     (    Text "No instance for"
     :$$: Text "  " :<>: ShowType ( Pure# rep ( StateS# s ) )
-    :$$: Text "due to levity polymorphism restrictions."
+    :$$: Text "due to representation-polymorphism restrictions."
     :$$: Text ""
-    :$$: Text "To define this instance manually, use the following Template Haskell splice:"
+    :$$: Text "If " :<>: ShowType rep :<>: Text " is not polymorphic,"
+    :$$: Text "you can define this instance manually, using the following Template Haskell splice:"
     :$$: Text ""
     :$$: Text "Control.Monad.State.RealWorld.Instances.TH.oneRepInstances"
     :$$: Text "    [t|" :<>: ShowType rep :<>: Text "|]"
@@ -49,9 +51,10 @@ instance {-# OVERLAPPABLE #-}
   TypeError
     (    Text "No instance for"
     :$$: Text "  " :<>: ShowType ( RunRWS# rep StateS# )
-    :$$: Text "due to levity polymorphism restrictions."
+    :$$: Text "due to representation-polymorphism restrictions."
     :$$: Text ""
-    :$$: Text "To define this instance manually, use the following Template Haskell splice:"
+    :$$: Text "If " :<>: ShowType rep :<>: Text " is not polymorphic,"
+    :$$: Text "you can define this instance manually, using the following Template Haskell splice:"
     :$$: Text ""
     :$$: Text "Control.Monad.State.RealWorld.Instances.TH.oneRepInstances"
     :$$: Text "    [t|" :<>: ShowType rep :<>: Text "|]"
@@ -66,9 +69,10 @@ instance {-# OVERLAPPABLE #-}
   TypeError
     (    Text "No instance for"
     :$$: Text "  " :<>: ShowType ( Fmap# rep1 rep2 ( StateS# s ) )
-    :$$: Text "due to levity polymorphism restrictions."
+    :$$: Text "due to representation-polymorphism restrictions."
     :$$: Text ""
-    :$$: Text "To define this instance manually, use the following Template Haskell splice:"
+    :$$: Text "If neither " :<>: ShowType rep1 :<>: Text " nor " :<>: ShowType rep2 :<>: Text " are polymorphic,"
+    :$$: Text "you can define this instance manually, using the following Template Haskell splice:"
     :$$: Text ""
     :$$: Text "Control.Monad.State.RealWorld.Instances.TH.twoRepInstances"
     :$$: Text "    [t|" :<>: ShowType rep1 :<>: Text "|] [t|" :<>: ShowType rep2 :<>: Text "|]"
@@ -83,9 +87,10 @@ instance {-# OVERLAPPABLE #-}
   TypeError
     (    Text "No instance for"
     :$$: Text "  " :<>: ShowType ( Bind# rep1 rep2 ( StateS# s ) )
-    :$$: Text "due to levity polymorphism restrictions."
+    :$$: Text "due to representation-polymorphism restrictions."
     :$$: Text ""
-    :$$: Text "To define this instance manually, use the following Template Haskell splice:"
+    :$$: Text "If neither " :<>: ShowType rep1 :<>: Text " nor " :<>: ShowType rep2 :<>: Text " are polymorphic,"
+    :$$: Text "you can define this instance manually, using the following Template Haskell splice:"
     :$$: Text ""
     :$$: Text "Control.Monad.State.RealWorld.Instances.TH.twoRepInstances"
     :$$: Text "    [t|" :<>: ShowType rep1 :<>: Text "|] [t|" :<>: ShowType rep2 :<>: Text "|]"
@@ -96,3 +101,6 @@ instance {-# OVERLAPPABLE #-}
   => Bind# rep1 rep2 ( StateS# s ) where
   (>>=) = error "no implementation for 'Bind#((>>=))'"
   (>>)  = error "no implementation for 'Bind#((>>))'"
+
+instance Fail# rep ( StateS# s ) where
+  fail str = error ( "StateS# fail: " <> str )

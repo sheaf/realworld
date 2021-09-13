@@ -1,9 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
 
 {-|
 Module: RealWorld.Instances.TH
 
-Template Haskell functionality for defining levity polymorphic monadic operations.
+Template Haskell functionality for defining representation-polymorphic monadic operations.
 -}
 
 module RealWorld.Instances.TH where
@@ -14,7 +15,10 @@ import Prelude hiding ( Functor(..), Applicative(..), Monad(..) )
 import Data.Traversable
   ( for )
 import GHC.Exts
-  ( RuntimeRep(..), runRW# )
+  ( RuntimeRep(..)
+  , LiftedRep, UnliftedRep
+  , runRW#
+  )
 
 -- template-haskell
 import qualified Language.Haskell.TH.Syntax as TH
@@ -48,7 +52,7 @@ twoRepInstances rep1 rep2 =
         StateS# \ s1 ->
           case g s1 of
             (# s2, a #) -> (# s2, f a #)
-    
+
     instance Bind# $rep1 $rep2 ( StateS# s ) where
       ( StateS# s1_to_s2a ) >>= f =
         StateS# \ s1 ->
@@ -81,7 +85,7 @@ declareRuntimeRepInstances = do
       , [t|FloatRep|]
       , [t|DoubleRep|]
       , [t|TupleRep '[]|]
-      , [t|SumRep '[]|] 
+      , [t|SumRep '[]|]
       ]
 
     bakedInReps :: [ TH.Q TH.Type ]
